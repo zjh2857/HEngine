@@ -1,0 +1,1 @@
+/environment/miniconda3/bin/nvcc -forward-unknown-to-host-compiler -Xcompiler=-fPIC -Wno-deprecated-gpu-targets -shared -dlink --options-file CMakeFiles/ckkstest.dir/deviceObjects1 -o CMakeFiles/ckkstest.dir/cmake_device_link.o --options-file CMakeFiles/ckkstest.dir/deviceLinkLibs.rsp

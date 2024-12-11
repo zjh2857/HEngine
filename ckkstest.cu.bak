@@ -1,0 +1,159 @@
+#include "encoder.cuh"
+#include"cufft.h"
+#include "encryptor.cuh"
+#include "evaluator.cuh"
+#include "net.h"
+__global__ void print(unsigned long long* a){
+    for(int i = 0; i < 8;i++){
+        printf("%llu,",a[i]);
+    }printf("\n");
+}
+__global__ void print(unsigned long long* a,unsigned long long id){
+    printf("%llu\n",id);
+    for(int i = 0; i < 8;i++){
+        printf("%llu ",a[i]);
+    }printf("\n");
+}
+__global__ void print_d(unsigned long long* a,int d){
+    for(int i = 0; i < 1;i++){
+        printf("printf_d%d:%llu ",d,a[d]);
+    }printf("\n");
+}
+int main(int argc,char *argv[]){
+    printf("===\n");
+    int N = 2048;
+    double scale = 1llu << 30;
+    scale = 1073872897;
+    double a[N];
+    for(int i = 0; i < N; i++)a[i] = 0;
+    int cnt = 0;
+    for(int i = 0; i < 32*32; i++){
+        if(i%32>=28 || i/32 >= 28)continue;
+        a[i] = pic[cnt++];
+    }
+    double b[N];
+    for(int i = 0; i < N; i++)b[i] = conv1_bias;
+    double c[N];
+    for(int i = 0; i < N; i++)c[i] = 0;
+    for(int i = 0; i < N; i++){
+        c[i] = i%5;
+    }
+    
+    double convker[16];
+    for(int i = 0; i < 16;i++){
+        convker[i]=conv1[i];
+    }
+    // printf("$$\n");
+    // b[N-1] = a[0];
+
+    keyGen keygen(N,scale,8);
+    Encoder encoder(N,scale,8);
+    Encryptor encryptor(N,scale,8);
+    Evaluator evaluator(N,scale,8);
+    // encoder.test();
+    auto encodeVeca = encoder.encode(a);
+    auto ciptertexta = encryptor.encrypt(encodeVeca,keygen.pub);
+    auto enncodefc1_w = encoder.EncodeBigMatrix(fc1_w,64,784,28);
+    auto enncodefc1_b = encoder.encode(fc1_b);
+
+    // auto encodeVecb = encoder.encode(b);
+    
+    // int t = atoi(argv[1]);
+    // for(int i = 0; i < t;i++){
+    //     evaluator.rotation(encodeVeca);
+    // }
+    // auto ciptertextr = evaluator.sum(ciptertexta,keygen.galois);
+    // evaluator.rotation(encodeVeca);
+    // for(int i = 0;  i < N; i++){
+    //     evaluator.rotation(encodeVeca);
+    //     auto plaina = encoder.decode(encodeVeca);
+    //     printf("%lf\n",plaina[0]);
+    // }
+    // evaluator.rotation(encodeVeca);
+
+    // evaluator.rescale(encodeVeca);
+    unsigned long long* encodeVecb = encoder.encode(b);
+    // // print<<<1,1>>>(encodeVeca);
+    // // print<<<1,1>>>(encodeVecb);
+    // // cudaDeviceSynchronize();
+
+
+    // auto ciptertextb = encryptor.encrypt(encodeVecb,keygen.pub);
+    auto convkerEncode = encoder.encode(convker,16);
+    // auto ciptertextr = evaluator.sum_r(ciptertextb,2,keygen.galois_right);
+    // evaluator.rescale(ciptertexta);
+    // // print<<<1,1>>>(keygen.pub.a);
+    // // print<<<1,1>>>(keygen.pub.b);
+    // auto ciptertextb = encryptor.encrypt(encodeVecb,keygen.pub);
+    // printf("$$\n");
+    // auto matrixEncode = encoder.encode(matrix,2,4);
+    // double start = cpuSecond();
+    // printf("$$\n");
+    auto ciptertextr = evaluator.conv(ciptertexta,convkerEncode,32,32,4,4,keygen.galois);
+    evaluator.rescale(ciptertextr);
+    printf("1...%d\n",ciptertextr.depth);
+    evaluator.addPlain(ciptertextr,encodeVecb);
+    auto res = evaluator.mulcipter(ciptertextr,ciptertextr);
+    auto fc1_input = evaluator.relien(res,keygen.relien);
+
+
+    evaluator.rescale(fc1_input);
+    printf("2...%d\n",fc1_input.depth);
+    auto fc1_out = evaluator.dot(enncodefc1_w,fc1_input,keygen.galois,keygen.galois_right);
+    // auto ciptertextr = evaluator.dot(matrixEncode,ciptertexta,keygen.galois,keygen.galois_right);
+    // printf("$$\n");
+    // cudaDeviceSynchronize();
+    // printf("Time: %lf\n",cpuSecond()-start);
+    // printf("$$\n");
+    // evaluator.conv(encodeVeca,encodeVecb);
+    // auto ciptertextr = evaluator.sum(ciptertexta,4,keygen.galois);
+    // auto ciptertextr = evaluator.innerProduct(ciptertexta,ciptertextb,keygen.galois,keygen.relien);
+    // // printf("%p,%p\n",ciptertexta,ciptertextb);
+    // //     print<<<1,1>>>(ciptertexta.a);
+    // // print<<<1,1>>>(ciptertexta.b);
+    // // print<<<1,1>>>(ciptertextb.a);
+    // // print<<<1,1>>>(ciptertextb.b);
+    // // auto plaina = encoder.decode(encodeVeca);
+    // print<<<1,1>>>(encodeVecb);
+    // auto encodeVecc = encoder.encode(c);
+    // evaluator.mulPlain(ciptertexta,encodeVecb);
+        // evaluator.mulPlain(ciptertexta,encodeVecb);
+            // evaluator.mulPlain(ciptertexta,encodeVecb);
+    // evaluator.mulPlain(ciptertexta,encodeVecb);
+    // evaluator.mulPlain(ciptertexta,encodeVecc);
+// evaluator.mulPlain(ciptertexta,encodeVecc);
+    // auto ciptertextd = evaluator.relien(ciptertextc,keygen.relien);
+    // evaluator.rescale(ciptertextd);
+    // print<<<1,1>>>(ciptertextd.a);
+    // print<<<1,1>>>(ciptertextd.b);
+    // print<<<1,1>>>(ciptertextd.c);
+    // evaluator.mulPlain(ciptertexta,encodeVecb);
+    // // evaluator.mulPlain(encodeVeca,encodeVecb);
+
+    // // printf("###\n");
+    // // print<<<1,1>>>(ciptertexta.a);
+    // // print<<<1,1>>>(ciptertexta.b);    
+    // encryptor.decrypt(ciptertextb,keygen.pri);
+    // int depth = ciptertextr.depth;
+    unsigned long long* dec = encryptor.decrypt(fc1_out,keygen.pri);
+    
+    // print<<<1,1>>>(dec);
+    // // print<<<1,1>>>(dec);
+    auto plaina = encoder.decode(dec,4);
+    // auto plaina = encoder.decode(encodeVeca);
+    // // // auto plainb =  encoder.decode(encodeVecb);
+    // // // print<<<1,1>>>(dec);
+    
+    // printf("%lf",plaina[0]);
+    for(int i = 0; i < 80; i++){
+        printf("%d,%lf\n",i,plaina[i]);
+    }
+    //  auto plainb = encoder.decode(encodeVecb);
+    // // // print<<<1,1>>>(dec);
+    
+
+    // //     for(int i = 0; i < 10; i++){
+    // //         printf("%lf\n",plainb[i]);
+    // //     }
+    cudaDeviceSynchronize();
+}

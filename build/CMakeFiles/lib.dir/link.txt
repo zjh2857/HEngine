@@ -1,0 +1,1 @@
+/usr/bin/g++ -fPIC -shared -Wl,-soname,liblib.so -o lib/liblib.so @CMakeFiles/lib.dir/objects1 CMakeFiles/lib.dir/cmake_device_link.o @CMakeFiles/lib.dir/linkLibs.rsp -L"/environment/miniconda3/lib/stubs" -L"/environment/miniconda3/lib"

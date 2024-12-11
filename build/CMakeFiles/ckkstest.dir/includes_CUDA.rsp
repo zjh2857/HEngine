@@ -1,0 +1,1 @@
+-isystem=/home/featurize/work/libtorch/include -isystem=/home/featurize/work/libtorch/include/torch/csrc/api/include
